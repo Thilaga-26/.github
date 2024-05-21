@@ -12,7 +12,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v3
         with:
-          python-version: 3.11
+          python-version: 3.12
 
       - name: Install dependencies
         run: |
@@ -21,4 +21,4 @@ jobs:
 
       - name: Analysing the code with pylint
         run: | 
-          pylint --disable=all --enable=W0611 $(pylint_files)
+          make unused-imports
