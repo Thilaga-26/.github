@@ -2,28 +2,24 @@ name: Check for unused imports using Pylint
 
 on:
   workflow_call:
-   inputs:
-      languages:
-        description: "Optional input to set languages for unused imports using Pylint. Supported values are: 'cpp', 'csharp', 'go', 'java', 'javascript', 'typescript', 'python', 'ruby'. To set multiple languages, use the same syntax as you can see in the default value."
-        required: false
-        type: string
-        default: "['python']"
-jobs:
-  Check-Unused-Imports:
-    name: Check-Unused-Imports
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
 
+jobs:
+  check-unused-imports:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
       - name: Set up Python
         uses: actions/setup-python@v3
         with:
           python-version: 3.11
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install pylint
+
       - name: Analysing the code with pylint
-        run:  make unused-imports
+        run: | 
+          pylint_files=$(git ls-files *.py src/migration-scripts)
+          pylint --disable=all --enable=W0611 $(pylint_files)
