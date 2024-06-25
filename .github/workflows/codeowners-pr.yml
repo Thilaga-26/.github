@@ -19,7 +19,7 @@ jobs:
       - name: Check for CODEOWNERS file
         id: check_codeowners
         run: |
-          if [ -f ".github/CODEOWNERS" ]; then
+          if [ -f "CODEOWNERS" ]; then
             echo "CODEOWNERS_EXISTS=true" >> $GITHUB_ENV
           else
             echo "CODEOWNERS_EXISTS=false" >> $GITHUB_ENV
