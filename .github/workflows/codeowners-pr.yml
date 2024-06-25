@@ -23,6 +23,7 @@ jobs:
             echo "CODEOWNERS_EXISTS=true" >> $GITHUB_ENV
           else
             echo "CODEOWNERS_EXISTS=false" >> $GITHUB_ENV
+          fi
 
       - name: Post PR comment
         if: github.event_name == 'pull_request'
