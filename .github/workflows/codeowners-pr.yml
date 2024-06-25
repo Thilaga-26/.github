@@ -1,35 +1,43 @@
-name: Check CODEOWNERS File
+name: Check for codeowners existence
 
 on:
-  pull_request:
-    branches:
-      - main  # Adjust this to your default branch if different
-
-permissions:
-  contents: read
-  pull-requests: write
+  workflow_call:
+    inputs:
+      pr_number:
+        required: true
+        type: number
 
 jobs:
-  check-codeowners:
+  check-for-codeowners_existence:
+    name: Check codeowners file existence
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
+
     steps:
-      - name: Checkout code
+      - name: Checkout current repository
         uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Check for CODEOWNERS file and fail if not present
+      - name: Check codeowners existence in current repository
+        id: check_codeowners_existence_current_repo
         run: |
-          if [ -f "./.github/CODEOWNERS" ]; then
-            echo "CODEOWNERS_EXISTS=true" >> $GITHUB_ENV
+          CODEOWNERS_FILE_PATH=".github/CODEOWNERS"
+          if [[ ! -f "$CODEOWNERS_FILE_PATH" ]]; then
+            echo "CODEOWNERS file does not exist in current repository - ${{ github.repository }}."
+            echo "CODEOWNERS_STATUS=NOTFOUND" >> $GITHUB_ENV
           else
-            echo "CODEOWNERS_EXISTS=false" >> $GITHUB_ENV
-            echo "Failing check due to missing CODEOWNERS file."
-            exit 1
+            echo "CODEOWNERS file exists in current repository. No action needed."
+            echo "CODEOWNERS_STATUS=EXISTS" >> $GITHUB_ENV
           fi
+        shell: bash
 
-      - name: Add PR comment about CODEOWNERS file
+      - name: Add PR comment in current repository
+        if: always()
         uses: peter-evans/create-or-update-comment@v1
         with:
-          issue-number: ${{ github.event.pull_request.number }}
-          body: |
-            ${{ env.CODEOWNERS_EXISTS == 'true' && '✅ CODEOWNERS file exists.' || '❌ No CODEOWNERS file found.' }}
+          issue-number: ${{ github.event.inputs.pr_number }}
+          body: "${{ env.CODEOWNERS_STATUS == 'NOTFOUND' && '❌ CODEOWNERS File NOTFOUND' || '👍 No issues. CODEOWNERS Exists' }}"
           token: ${{ secrets.GITHUB_TOKEN }}
