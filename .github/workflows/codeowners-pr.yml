@@ -1,11 +1,9 @@
 name: Check for codeowners existence
 
 on:
-  workflow_call:
-    inputs:
-      pr_number:
-        required: true
-        type: number
+  pull_request:
+    branches:
+      - main
 
 jobs:
   check-for-codeowners_existence:
@@ -24,10 +22,11 @@ jobs:
       - name: Check codeowners existence in current repository
         id: check_codeowners_existence_current_repo
         run: |
-          CODEOWNERS_FILE_PATH=".github/CODEOWNERS"
+          CODEOWNERS_FILE_PATH="CODEOWNERS"
           if [[ ! -f "$CODEOWNERS_FILE_PATH" ]]; then
             echo "CODEOWNERS file does not exist in current repository - ${{ github.repository }}."
             echo "CODEOWNERS_STATUS=NOTFOUND" >> $GITHUB_ENV
+            exit 1
           else
             echo "CODEOWNERS file exists in current repository. No action needed."
             echo "CODEOWNERS_STATUS=EXISTS" >> $GITHUB_ENV
@@ -38,6 +37,8 @@ jobs:
         if: always()
         uses: peter-evans/create-or-update-comment@v1
         with:
-          issue-number: ${{ github.event.inputs.pr_number }}
-          body: "${{ env.CODEOWNERS_STATUS == 'NOTFOUND' && '❌ CODEOWNERS File NOTFOUND' || '👍 No issues. CODEOWNERS Exists' }}"
+          issue-number: ${{ github.event.pull_request.number }}
+          body: ${{ env.CODEOWNERS_STATUS == 'NOTFOUND' && '❌ CODEOWNERS File NOTFOUND' || '👍 No issues. CODEOWNERS Exists' }}
           token: ${{ secrets.GITHUB_TOKEN }}
+          message-id: "CODEOWNERS_VALIDATION"
+          allow-repeats: false
