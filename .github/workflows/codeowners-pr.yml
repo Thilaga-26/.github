@@ -15,7 +15,7 @@ jobs:
       - name: Check for CODEOWNERS file
         id: check_codeowners
         run: |
-          if [ -f ".github/CODEOWNERS" ]; then
+          if [ -f "CODEOWNERS" ]; then
             echo "::set-output name=exists::true"
           else
             echo "::set-output name=exists::false"
