@@ -16,22 +16,20 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Check and Comment on CODEOWNERS file
+      - name: Check for CODEOWNERS file and fail if not present
         run: |
           if [ -f "./.github/CODEOWNERS" ]; then
-            CODEOWNERS_EXISTS=true
-            COMMENT_BODY="✅ CODEOWNERS file exists."
+            echo "CODEOWNERS_EXISTS=true" >> $GITHUB_ENV
           else
-            CODEOWNERS_EXISTS=false
-            COMMENT_BODY="❌ No CODEOWNERS file found."
-            echo "No CODEOWNERS file found, failing the check."
+            echo "CODEOWNERS_EXISTS=false" >> $GITHUB_ENV
+            echo "Failing check due to missing CODEOWNERS file."
             exit 1
           fi
-          PR_COMMENTS_URL=$(jq -r .pull_request.comments_url "$GITHUB_EVENT_PATH")
-          curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-               -H "Content-Type: application/json" \
-               -d "{\"body\": \"$COMMENT_BODY\"}" \
-               $PR_COMMENTS_URL
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_EVENT_PATH: ${{ github.event_path }}
+
+      - name: Add PR comment about CODEOWNERS file
+        uses: peter-evans/create-or-update-comment@v1
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            ${{ env.CODEOWNERS_EXISTS == 'true' && '✅ CODEOWNERS file exists.' || '❌ No CODEOWNERS file found.' }}
+          token: ${{ secrets.GITHUB_TOKEN }}
