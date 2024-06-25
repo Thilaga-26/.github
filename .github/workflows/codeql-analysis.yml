@@ -58,3 +58,31 @@ jobs:
         ${{inputs.build-command}}
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
+
+    - name: Add Success PR Comment
+      if: success() && steps.codeql_analysis.outcome == 'success'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const issue_number = context.issue.number;
+          const message = `👍 CodeQL Analysis found no issues.`;
+          github.rest.issues.createComment({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: issue_number,
+            body: message
+          });
+
+    - name: Add Error PR Comment
+      if: failure() && steps.codeql_analysis.outcome == 'failure'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const issue_number = context.issue.number;
+          const message = `❌ CodeQL Analysis found issues. Please review the annotations.`;
+          github.rest.issues.createComment({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: issue_number,
+            body: message
+          });
