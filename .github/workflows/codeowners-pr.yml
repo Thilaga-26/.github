@@ -5,6 +5,10 @@ on:
     branches:
       - main  # or your default branch
 
+permissions:
+  contents: read
+  issues: write  # This permission allows commenting on PRs
+
 jobs:
   check-codeowners:
     runs-on: ubuntu-latest
