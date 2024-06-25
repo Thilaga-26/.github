@@ -63,9 +63,16 @@ jobs:
     # New step to add a PR comment
     - name: Add PR Comment
       if: always() # This ensures the step runs regardless of the outcome of the previous steps
-      uses: mshick/add-pr-comment@v2
+      uses: actions/github-script@v6
       with:
-        message: |
-          ${{ job.status == 'success' && '👍 CodeQL Analysis found no issues.' || '❌ CodeQL Analysis found issues. Please review the annotations.' }}
-        message-id: "CODEQL ANALYSIS RESULTS"
-        allow-repeats: false
+        script: |
+          const issue_number = context.issue.number;
+          const message = job.status === 'success' ?
+            '👍 CodeQL Analysis found no issues.' :
+            '❌ CodeQL Analysis found issues. Please review the annotations.';
+          github.rest.issues.createComment({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: issue_number,
+            body: message
+          });
