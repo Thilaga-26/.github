@@ -22,7 +22,7 @@ jobs:
       - name: Check codeowners existence in current repository
         id: check_codeowners_existence_current_repo
         run: |
-          CODEOWNERS_FILE_PATH=".github/CODEOWNERS"
+          CODEOWNERS_FILE_PATH="CODEOWNERS"
           if [[ ! -f "$CODEOWNERS_FILE_PATH" ]]; then
             echo "CODEOWNERS file does not exist in current repository - ${{ github.repository }}."
             echo "CODEOWNERS_STATUS=NOTFOUND" >> $GITHUB_ENV
@@ -40,3 +40,5 @@ jobs:
           issue-number: ${{ github.event.pull_request.number }}
           body: ${{ env.CODEOWNERS_STATUS == 'NOTFOUND' && '❌ CODEOWNERS File NOTFOUND' || '👍 No issues. CODEOWNERS Exists' }}
           token: ${{ secrets.GITHUB_TOKEN }}
+          message-id: "CODEOWNERS_VALIDATION"
+          allow-repeats: false
