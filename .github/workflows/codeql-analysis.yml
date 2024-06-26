@@ -58,12 +58,26 @@ jobs:
     - name: Perform CodeQL Analysis
       id: codeql
       uses: github/codeql-action/analyze@v3
+      with:
+        output: codeql-results
 
-    - name: Add PR comment
+    # Modified step to check for vulnerabilities in the SARIF file
+    - name: Check for vulnerabilities
+      id: check_vulnerabilities
+      run: |
+        if grep -q '"kind": "problem"' codeql-results/*.sarif; then
+          echo "Vulnerabilities found."
+          echo "VULNERABILITIES_FOUND=true" >> $GITHUB_ENV
+        else
+          echo "No vulnerabilities found."
+          echo "VULNERABILITIES_FOUND=false" >> $GITHUB_ENV
+      continue-on-error: true
+
+    - name: Add PR comment based on vulnerabilities check
       if: always()
       uses: mshick/add-pr-comment@v2
       with:
         message: |
-          ${{ steps.codeql_analysis.outcome == 'success' && '👍 No vulnerabilities found.' || '❌ Vulnerabilities found.' }}
+          ${{ env.VULNERABILITIES_FOUND == 'true' && '❌ Vulnerabilities found.' || '👍 No vulnerabilities found.' }}
         message-id: "CODEQL ANALYSIS RESULT"
         allow-repeats: false
