@@ -62,42 +62,22 @@ jobs:
         output: codeql-results
 
     # Modified step to check for vulnerabilities in the SARIF file
-    # - name: Check for vulnerabilities
-    #   id: check_vulnerabilities
-    #   run: |
-    #     if grep -q '"kind": "problem"' codeql-results/*.sarif; then
-    #       echo "Vulnerabilities found."
-    #       echo "VULNERABILITIES_FOUND=true" >> $GITHUB_ENV
-    #     else
-    #       echo "No vulnerabilities found."
-    #       echo "VULNERABILITIES_FOUND=false" >> $GITHUB_ENV
-    #     fi
-
-    # - name: Add PR comment based on vulnerabilities check
-    #   if: always()
-    #   uses: mshick/add-pr-comment@v2
-    #   with:
-    #     message: |
-    #       ${{ env.VULNERABILITIES_FOUND == 'true' && '❌ Vulnerabilities found.' || '👍 No vulnerabilities found.' }}
-    #     message-id: "CODEQL ANALYSIS RESULT"
-    #     allow-repeats: false
-
-        # Modified step to check for vulnerabilities in the SARIF file and set an output
     - name: Check for vulnerabilities
       id: check_vulnerabilities
       run: |
         if grep -q '"kind": "problem"' codeql-results/*.sarif; then
           echo "Vulnerabilities found."
-          echo "::set-output name=message::❌ Vulnerabilities found."
+          echo "VULNERABILITIES_FOUND=true" >> $GITHUB_ENV
         else
           echo "No vulnerabilities found."
-          echo "::set-output name=message::👍 No vulnerabilities found."
+          echo "VULNERABILITIES_FOUND=false" >> $GITHUB_ENV
         fi
 
     - name: Add PR comment based on vulnerabilities check
       if: always()
       uses: mshick/add-pr-comment@v2
       with:
-        message: ${{ steps.check_vulnerabilities.outputs.message }}
+        message: |
+          ${{ env.VULNERABILITIES_FOUND == 'true' && '❌ Vulnerabilities found.' || '👍 No vulnerabilities found.' }}
         message-id: "CODEQL ANALYSIS RESULT"
-        allow-repeats: false
+        allow-repeats: false  
