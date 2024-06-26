@@ -29,6 +29,7 @@ jobs:
       actions: read
       contents: read
       security-events: write
+      pull-requests: write
 
     strategy:
       fail-fast: false
@@ -39,15 +40,12 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
-    # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v3
       with:
         languages: ${{matrix.language}}
         config-file: ${{inputs.codeql-cfg-path}}
 
-    # Autobuild attempts to build any compiled languages  (C/C++, C#, or Java).
-    # If this step fails, configure a build command manually using build-command input. This command will be executed in the corresponding step.
     - name: Autobuild
       if: ${{!inputs.build-command}}
       uses: github/codeql-action/autobuild@v3
@@ -56,5 +54,33 @@ jobs:
       if: ${{inputs.build-command}}
       run: |
         ${{inputs.build-command}}
+
     - name: Perform CodeQL Analysis
+      id: codeql
       uses: github/codeql-action/analyze@v3
+
+    # Post a success message if no vulnerabilities are found
+    - name: Post success comment
+      if: success()
+      uses: actions/github-script@v5
+      with:
+        script: |
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: '🎉 No errors detected in the CodeQL analysis!'
+          })
+
+    # Post an error message if vulnerabilities are found
+    - name: Post failure comment
+      if: failure()
+      uses: actions/github-script@v5
+      with:
+        script: |
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: '⚠️ Vulnerabilities detected in the CodeQL analysis. Please review the action logs for details.'
+          })
