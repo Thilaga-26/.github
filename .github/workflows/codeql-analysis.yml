@@ -71,7 +71,7 @@ jobs:
         else
           echo "No vulnerabilities found."
           echo "VULNERABILITIES_FOUND=false" >> $GITHUB_ENV
-      continue-on-error: true
+        fi
 
     - name: Add PR comment based on vulnerabilities check
       if: always()
