@@ -59,28 +59,11 @@ jobs:
       id: codeql
       uses: github/codeql-action/analyze@v3
 
-    # Post a success message if no vulnerabilities are found
-    - name: Post success comment
-      if: success()
-      uses: actions/github-script@v5
+    # Use mshick/add-pr-comment action to post a comment on the PR
+    - name: Post PR Comment
+      uses: mshick/add-pr-comment@v2
       with:
-        script: |
-          github.rest.issues.createComment({
-            issue_number: context.issue.number,
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            body: '🎉 No errors detected in the CodeQL analysis!'
-          })
-
-    # Post an error message if vulnerabilities are found
-    - name: Post failure comment
-      if: failure()
-      uses: actions/github-script@v5
-      with:
-        script: |
-          github.rest.issues.createComment({
-            issue_number: context.issue.number,
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            body: '⚠️ Vulnerabilities detected in the CodeQL analysis. Please review the action logs for details.'
-          })
+        message: |
+          ${{ job.status == 'success' && '🎉 No errors detected in the CodeQL analysis!' || '⚠️ Vulnerabilities detected in the CodeQL analysis. Please review the action logs for details.' }}
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        allow-repeats: false # Set to true if you want to allow repeated messages
